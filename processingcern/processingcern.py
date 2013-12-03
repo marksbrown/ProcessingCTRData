@@ -1037,17 +1037,29 @@ def FetchDataFrame(rootloc, workingon,
         return 1
 
 
-def GenerateCTR(df, reference=ufloat(42, 2), verbose=0):
+def GenerateCTR(df, reference=ufloat(42, 2), refflag=True, verbose=0):
     '''
     Calculates time resolution and error from scale parameter
     '''
-    TotalSigma = [ufloat(grp.scale, grp.scaleerr)
-                  for key, grp in df.groupby('uniquename')]
+#    TotalSigma = [ufloat(grp.scale, grp.scaleerr)
+#                  for key, grp in df.groupby('uniquename')]
+    
+    def afunc(srs):
+        if srs["scale"]>reference.nominal_value:
+            return ufloat(srs["scale"], srs["scaleerr"])
+        else:
+            return reference.nominal_value
+                  
+    TotalSigma = array(df.apply(afunc,axis=1))
 
-    # a reference value is provided
-    if isinstance(type(reference), type(ufloat(0, 0))):
-        TimeResolution = [uncmath.sqrt(val ** 2 - reference ** 2)
-                          for val in TotalSigma]
+    if refflag==True:
+        if verbose > 0:
+            print("Subtracting",reference,"in quadrature!")
+                        
+        TimeResolution = [uncmath.sqrt(val**2 - reference**2) for val in TotalSigma]
+                      
+
+
     else:
         if verbose > 0:
             print("identical scintillator detectors")
@@ -1058,6 +1070,7 @@ def GenerateCTR(df, reference=ufloat(42, 2), verbose=0):
             print(i, ":", val, "ps")
 
         print("\nmean value :", mean(TimeResolution), "ps")
+    
     return zip(*[[val.nominal_value, val.std_dev] for val in TimeResolution])
 
 
@@ -1102,20 +1115,17 @@ def PrintLatexDOI(
                     "CTR (ps)"]))
 
 
-def savefig(name, fig, **kwargs):
+def savefigure(name, loc, fig, Ext=['pdf', 'eps', 'png', 'svg']):
     '''
-    Saves figure
-
-    kwargs:
-    isl : imagesavelocation
-    ext : extensions to save as and into
+    Saves figure to location given by rootloc/<ext>/<name>.<ext>
     '''
-    ImageSaveLocation = kwargs.get(
-        'isl',
-        '/home/mbrown/Desktop/Dropbox/TransferReport/images')
-    Ext = kwargs.get('ext', ['png', 'pdf', 'svg'])
 
     for ext in Ext:
-        saveto = os.path.join(ImageSaveLocation, ext, name + "." + ext)
-        print(saveto)
-        fig.savefig(saveto)
+        extloc = os.path.join(loc, ext)
+        if not os.path.exists(extloc):
+            os.makedirs(extloc)
+        
+        aname = name + '.' + ext
+        saveloc = os.path.join(extloc, aname)
+        fig.savefig(saveloc)
+
