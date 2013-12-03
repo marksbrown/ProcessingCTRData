@@ -1,2 +1,2 @@
-from processingcern.py import *
-from lightyield.py import *
+from .processingcern import *
+from .lightyield import *
