@@ -988,7 +988,7 @@ def ProcessFiles(fileloc, **kwargs):
     Combined = kwargs.get('Combined', False)
     verbose = kwargs.get('verbose', 0)
 
-    if Combined:
+    if Combined: #literally combine all files (bar skipfirst)
         CombineFiles(fileloc, splitby=splitby, verbose=verbose)
         fileloc += '-Combined'
         kwargs = dict(kwargs.items() + [('SkipRows', 0)])
