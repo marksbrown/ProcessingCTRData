@@ -1044,34 +1044,40 @@ def GenerateCTR(df, reference=ufloat(42, 2), refflag=True, verbose=0):
 #    TotalSigma = [ufloat(grp.scale, grp.scaleerr)
 #                  for key, grp in df.groupby('uniquename')]
     
-    def afunc(srs):
-        if srs["scale"]>reference.nominal_value:
-            return ufloat(srs["scale"], srs["scaleerr"])
-        else:
-            return reference.nominal_value
-                  
-    TotalSigma = array(df.apply(afunc,axis=1))
+    
 
     if refflag==True:
+        def afunc(srs):
+                if srs["scale"]>reference.nominal_value:
+                    return ufloat(srs["scale"], srs["scaleerr"])
+                else:
+                    return reference.nominal_value
+                  
+        TotalSigma = array(df.apply(afunc,axis=1))
+
         if verbose > 0:
             print("Subtracting",reference,"in quadrature!")
                         
         TimeResolution = [uncmath.sqrt(val**2 - reference**2) for val in TotalSigma]
-                      
-
-
+    
     else:
+        def afunc(srs):
+            return ufloat(srs["scale"], srs["scaleerr"])
+            
+        TotalSigma = array(df.apply(afunc,axis=1))
+
         if verbose > 0:
             print("identical scintillator detectors")
-        TimeResolution = [val / sqrt(2) for val in TotalSigma]
+        TimeResolution = [val / uncmath.sqrt(2) for val in TotalSigma]
 
     if verbose > 0:
         for i, val in enumerate(TimeResolution):
             print(i, ":", val, "ps")
 
-        print("\nmean value :", mean(TimeResolution), "ps")
+        ##print("\nmean value :", mean(TimeResolution), "ps")
     
-    return zip(*[[val.nominal_value, val.std_dev] for val in TimeResolution])
+    return zip(*[[val.n, val.s] for val in TimeResolution])
+    #return zip(*[[val.nominal_value, val.std_dev] for val in TimeResolution])
 
 
 def CalculateDOI(df, minposition=34, whichkey='KeyWords', verbose=0):
