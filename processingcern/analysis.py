@@ -46,6 +46,9 @@ def GenerateLaTeXTable(df, sortby=['configuration', 'SampleB', 'DOI'],
     if any([aval == 'loc' for aval in Cols]):
         df['loc'] = [str(round(a, RoundTo)) + pm + str(round(b, RoundTo))
                      for a, b in zip(df.location, df.locationerr)]
+    if any([aval == 'rploc' for aval in Cols]):
+        df['rploc'] = [str(round(a, RoundTo)) + pm + str(round(b, RoundTo))
+                     for a, b in zip(df.RPloc, df.RPlocerr)]
 
     df['ggevents'] = [str(int(val)) + pm + str(int(sqrt(val)))
                       for val in df.numofsamples]
