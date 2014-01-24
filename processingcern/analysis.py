@@ -11,7 +11,7 @@ tidystring = lambda astr: '{:1.2f}'.format(astr).replace('+/-', '$\pm$')
 def CalculatePTP(df):
     ptpchange = []
     for key, grp in df.groupby(['SampleB', 'configuration']):
-        astr = [ufloat(a, b) for a, b in zip(grp.CTR, grp.CTRError)]
+        astr = [ufloat(a, b) for a, b in zip(grp.CTR, grp.CTRerr)]
         ptpchange.append(tidystring(ptp(astr)))
 
     return ptpchange
@@ -20,7 +20,7 @@ def CalculatePTP(df):
 def CalculateSTD(df):
     StandardDeviation = []
     for key, grp in df.groupby(['SampleB', 'configuration']):
-        astr = [ufloat(a, b) for a, b in zip(grp.CTR, grp.CTRError)]
+        astr = [ufloat(a, b) for a, b in zip(grp.CTR, grp.CTRerr)]
         StandardDeviation.append(tidystring(umath.sqrt(var(astr))))
 
     return StandardDeviation
@@ -41,7 +41,7 @@ def GenerateLaTeXTable(df, sortby=['configuration', 'SampleB', 'DOI'],
 
     if any([aval == 'ctr' for aval in Cols]):
         df["ctr"] = [str(round(a, RoundTo)) + pm + str(round(b, RoundTo))
-                     for a, b in zip(df.CTR, df.CTRError)]
+                     for a, b in zip(df.CTR, df.CTRerr)]
 
     if any([aval == 'loc' for aval in Cols]):
         df['loc'] = [str(round(a, RoundTo)) + pm + str(round(b, RoundTo))
@@ -66,13 +66,13 @@ def getchi(grp, dist='nofit', verbose=0, plot=False, fetchparam=False):
     chi = lambda FD: pc.chisquaretest(
         array(grp['CTR']),
         FD,
-        yerr=grp['CTRError'],
+        yerr=grp['CTRerr'],
         reducenum=len(grp['CTR']) + P - 1)  # N+P-1
 
     if dist == 'nofit':
         P = 1
         line = lambda xdata, c: ones(shape(xdata)) * c
-        c, cerr = opt.curve_fit(line, array(grp['DOI']), array(grp['CTR']), sigma=grp['CTRError'])
+        c, cerr = opt.curve_fit(line, array(grp['DOI']), array(grp['CTR']), sigma=grp['CTRerr'])
 
         param = (ufloat(c, cerr))
         if verbose > 0:
@@ -84,7 +84,7 @@ def getchi(grp, dist='nofit', verbose=0, plot=False, fetchparam=False):
             print(chi(fitdist))
             fig, ax = subplots()
             ax.grid()
-            ax.errorbar(grp['DOI'], grp['CTR'], yerr=grp['CTRError'], fmt='.')
+            ax.errorbar(grp['DOI'], grp['CTR'], yerr=grp['CTRerr'], fmt='.')
 
             X = linspace(0, 30)
             Y = line(X, c)
@@ -98,7 +98,7 @@ def getchi(grp, dist='nofit', verbose=0, plot=False, fetchparam=False):
         P = 2
         linear = lambda xdata, m, c: m * xdata + c
         (m, c), err = opt.curve_fit(
-            linear, array(grp['DOI']), array(grp['CTR']), sigma=grp['CTRError'])
+            linear, array(grp['DOI']), array(grp['CTR']), sigma=grp['CTRerr'])
         merr, cerr = err.diagonal()
 
         param = (ufloat(m, merr), ufloat(c, cerr))
@@ -112,7 +112,7 @@ def getchi(grp, dist='nofit', verbose=0, plot=False, fetchparam=False):
             print(chi(fitdist))
             fig, ax = subplots()
             ax.grid()
-            ax.errorbar(grp['DOI'], grp['CTR'], yerr=grp['CTRError'], fmt='.')
+            ax.errorbar(grp['DOI'], grp['CTR'], yerr=grp['CTRerr'], fmt='.')
 
             X = linspace(0, 30)
             Y = linear(X, m, c)
