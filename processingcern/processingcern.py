@@ -1121,18 +1121,28 @@ def PrintLatexDOI(
                     "CTR (ps)"]))
 
 
-def savefigureadir(name, loc, fig, ext='png'):
+
+def savefigureadir(name, loc, fig, ext='png', plos=False):
     '''
     Saves figure to location 
-    loc/<name>/<name>.<ext>
+    loc/<name>/<name>.<ext> unless plos is true
     '''
+
+    if plos:
+        aname = name + ".tiff"
+        if not os.path.exists(loc):
+            os.makedirs(loc)
+
+        saveloc = os.path.join(loc, aname)
     
-    extloc = os.path.join(loc, name)
-    if not os.path.exists(extloc):
-        os.makedirs(extloc)
+    else:    
+        extloc = os.path.join(loc, name)
+        if not os.path.exists(extloc):
+            os.makedirs(extloc)
     
-    aname = name + '.' + ext
-    saveloc = os.path.join(extloc, aname)
+        aname = name + '.' + ext
+        saveloc = os.path.join(extloc, aname)
+    
     fig.savefig(saveloc)
 
 def savefigure(name, loc, fig, Ext=['pdf', 'eps', 'png', 'svg']):
